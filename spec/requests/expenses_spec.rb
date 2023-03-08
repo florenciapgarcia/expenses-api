@@ -2,10 +2,16 @@ require "rails_helper"
 
 RSpec.describe "Expenses", type: :request do
   describe "GET /expenses" do
-    it "works!" do
-      expense = create(:expense)
-      get expenses_index_path(expense_id: expense.id)
-      expect(response).to have_http_status(200)
+    before do
+      create_list(:expense, 8)
+      get "/expenses"
+    end
+    it "returns a succesful response" do
+      expect(response).to have_http_status(:success)
+    end
+    it "retrieves all expenses" do
+      p create_list(:expense, 8)
+      expect(:expenses.size).to eq(8)
     end
   end
 end

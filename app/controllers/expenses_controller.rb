@@ -1,6 +1,7 @@
 class ExpensesController < ApplicationController
   def index
     @expenses = Expense.all
+    render json: @expenses
   end
 
   def create
@@ -10,7 +11,7 @@ class ExpensesController < ApplicationController
   private
 
   def expense_params
-    params.require(:expense).permit(:title, :amount, :date)
+    params.require(:expense).permit(:title, :amount_in_cents, :date)
   end
 
   def show
