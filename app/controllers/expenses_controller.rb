@@ -5,7 +5,7 @@ class ExpensesController < ApplicationController
   end
 
   def create
-    expense = Expense.create(expense_params)
+    expense = Expense.create(create_expense_params)
     render json: expense
   end
 
@@ -18,12 +18,9 @@ class ExpensesController < ApplicationController
     end
   end
 
-
-# TODO - 
   def update
     expense = Expense.find(params[:id])
-    expense.update!(expense_params)
-    # TODO - tal vez aca tendria que hacer un if, si no me pasa params que me devuelva el mismo objeto?? o un 'nada para actualizar', pero si se actuliza bien que me mande un mensaje que diga 'successfully updated
+    expense.update!(update_expense_params)
     render json: expense
   end
 
@@ -34,7 +31,7 @@ class ExpensesController < ApplicationController
 
   private
 
-  def expense_params
+  def create_expense_params
     params
       .require(:expense)
       .permit(:title, :amount_in_cents, :date)
@@ -43,5 +40,13 @@ class ExpensesController < ApplicationController
         expense_params.require(:amount_in_cents)
         expense_params.require(:date)
       end
+  end
+
+  def update_expense_params
+    params.require(:expense, :id).permit(:title, :amount_in_cents, :date).tap do |expense_params|
+      expense_params.require(:title)
+      expense_params.require(:amount_in_cents)
+      expense_params.require(:date)
+    end
   end
 end
