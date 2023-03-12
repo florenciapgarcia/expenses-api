@@ -18,11 +18,10 @@ class ExpensesController < ApplicationController
     end
   end
 
-
-# TODO - 
+  # TODO - maybe do it so if the param is not received, then use the existent one?
   def update
     expense = Expense.find(params[:id])
-    expense.update!(expense_params)
+    expense.update!(create_expense_params)
     # TODO - tal vez aca tendria que hacer un if, si no me pasa params que me devuelva el mismo objeto?? o un 'nada para actualizar', pero si se actuliza bien que me mande un mensaje que diga 'successfully updated
     render json: expense
   end
@@ -32,9 +31,11 @@ class ExpensesController < ApplicationController
     @expense.destroy
   end
 
+  # create update_params method
+
   private
 
-  def expense_params
+  def create_expense_params
     params
       .require(:expense)
       .permit(:title, :amount_in_cents, :date)

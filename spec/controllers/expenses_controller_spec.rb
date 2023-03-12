@@ -123,7 +123,7 @@ RSpec.describe ExpensesController do
 
     context 'with an invalid id param' do
       it 'returns http not found' do
-        get :show, params: { id: 2 }
+        get :show, params: { id: 'invalid_id' }
 
         expect(response).to have_http_status(:not_found)
       end
@@ -145,7 +145,7 @@ RSpec.describe ExpensesController do
     #   end
 
     context 'when valid params are passed' do
-      let!(:updated_expense) do
+      let!(:expense) do
         create(
           :expense,
           title: 'Skincare',
@@ -154,21 +154,21 @@ RSpec.describe ExpensesController do
         )
       end
       context 'when title is passed' do
-        let (:new_title) {
-          'New title'
-        }
+        let (:new_title) { 'New title' }
         it 'updates only the title' do
           patch :update,
                 params: {
                   id: expense.id,
                   expense: {
                     title: new_title,
-                    amount_in_cents: updated_expense.amount_in_cents,
-                    date: updated_expense.date,
+                    amount_in_cents: expense.amount_in_cents,
+                    date: expense.date,
                   },
                 }
+
+          updated_expense = Expense.find(expense.id)
           expect(response).to have_http_status(:success)
-          expect(updated_expense.reload.title).to eq(new_title)
+          expect(updated_expense.title).to eq(new_title)
         end
       end
     end
