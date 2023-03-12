@@ -10,18 +10,24 @@ class ExpensesController < ApplicationController
   end
 
   def show
+    if params[:id].blank?
+      render json: { error: 'Bad Request' }, status: :bad_request
+    else
+      expense = Expense.find(params[:id])
+      render json: expense
+    end
+  end
+
+
+# TODO - 
+  def update
     expense = Expense.find(params[:id])
-    p expense #require id test -(missing, valid, invalid)
+    expense.update!(expense_params)
+    # TODO - tal vez aca tendria que hacer un if, si no me pasa params que me devuelva el mismo objeto?? o un 'nada para actualizar', pero si se actuliza bien que me mande un mensaje que diga 'successfully updated
     render json: expense
   end
 
-  def update
-    @expense = Expense.find(params[:id])
-    @expense.update!(expense_params)
-  end
-
   def destroy
-    # show.destroy
     @expense = Expense.find(params[:id])
     @expense.destroy
   end

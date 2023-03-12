@@ -50,8 +50,8 @@ RSpec.describe ExpensesController do
                params: {
                  expense: {
                    amount_in_cents: 100,
-                   date: Date.current
-                 }
+                   date: Date.current,
+                 },
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -64,8 +64,8 @@ RSpec.describe ExpensesController do
                params: {
                  expense: {
                    title: 'vet shop',
-                   date: Date.current
-                 }
+                   date: Date.current,
+                 },
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -78,8 +78,8 @@ RSpec.describe ExpensesController do
                params: {
                  expense: {
                    title: 'vet shop',
-                   amount_in_cents: 1000
-                 }
+                   amount_in_cents: 1000,
+                 },
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -89,11 +89,7 @@ RSpec.describe ExpensesController do
           let(:title) { 'vet shop' }
           let(:amount_in_cents) { 1000 }
           let(:date) { Date.current }
-          let(:params) do
-            {
-              expense: { title:, amount_in_cents:, date: }
-            }
-          end
+          let(:params) { { expense: { title:, amount_in_cents:, date: } } }
 
           it 'returns success' do
             post(:create, params:)
@@ -115,24 +111,66 @@ RSpec.describe ExpensesController do
   end
 
   describe 'GET /expenses/:id' do
-  context "when id param is missing" do
-    it "returns bad request" do
-      get :show, params: {}
+    let(:expense) { create(:expense) } # create a sample expense record
 
-      expect(response).to have_http_status(:bad_request)
+    context 'with a valid id param' do
+      it 'returns http success' do
+        get :show, params: { id: expense.id }
+
+        expect(response).to have_http_status(:success)
+      end
+    end
+
+    context 'with an invalid id param' do
+      it 'returns http not found' do
+        get :show, params: { id: 2 }
+
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    context 'with a missing id param' do
+      it 'returns http bad request' do
+        get :show, params: { id: '' }
+
+        expect(response).to have_http_status(:bad_request)
+      end
     end
   end
 
-  # context "when id param is passed" do
- 
-  # context "when id param is invalid" do
-  #   it "" do
-  #   end
-  # end
-  # context "when id param is valid" do
-  #   it "" do
-  #   end
-  # end
-  # end
+  describe 'PATCH /expenses/:id' do
+    let!(:expense) { create(:expense) }
+    #   context 'when no params are passed' do
+    #   #nothing should happen. it should return the same object?
+    #   end
+
+    context 'when valid params are passed' do
+      let!(:updated_expense) do
+        create(
+          :expense,
+          title: 'Skincare',
+          amount_in_cents: 10_000,
+          date: Date.current,
+        )
+      end
+      context 'when title is passed' do
+        let (:new_title) {
+          'New title'
+        }
+        it 'updates only the title' do
+          patch :update,
+                params: {
+                  id: expense.id,
+                  expense: {
+                    title: new_title,
+                    amount_in_cents: updated_expense.amount_in_cents,
+                    date: updated_expense.date,
+                  },
+                }
+          expect(response).to have_http_status(:success)
+          expect(updated_expense.reload.title).to eq(new_title)
+        end
+      end
+    end
   end
 end
