@@ -43,7 +43,6 @@ class ExpensesController < ApplicationController
   end
 
   def update_params
-    params
-      .require(:id, :expense)
+    params.require(:expense).permit(:title, :amount_in_cents, :date)
   end
 end

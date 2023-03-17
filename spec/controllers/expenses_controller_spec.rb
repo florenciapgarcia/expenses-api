@@ -50,8 +50,8 @@ RSpec.describe ExpensesController do
                params: {
                  expense: {
                    amount_in_cents: 100,
-                   date: Date.current
-                 }
+                   date: Date.current,
+                 },
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -64,8 +64,8 @@ RSpec.describe ExpensesController do
                params: {
                  expense: {
                    title: 'vet shop',
-                   date: Date.current
-                 }
+                   date: Date.current,
+                 },
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -78,39 +78,38 @@ RSpec.describe ExpensesController do
                params: {
                  expense: {
                    title: 'vet shop',
-                   amount_in_cents: 1000
-                 }
+                   amount_in_cents: 1000,
+                 },
                }
 
           expect(response).to have_http_status(:bad_request)
         end
+      end
+      context 'when title, amount_in_cents, date params is passed' do
+        let(:title) { 'vet shop' }
+        let(:amount_in_cents) { 1000 }
+        let(:date) { Date.current }
+        let(:params) { { expense: { title:, amount_in_cents:, date: } } }
 
-        context 'when title, amount_in_cents, date params is passed' do
-          let(:title) { 'vet shop' }
-          let(:amount_in_cents) { 1000 }
-          let(:date) { Date.current }
-          let(:params) { { expense: { title:, amount_in_cents:, date: } } }
+        it 'returns created' do
+          post(:create, params:)
 
-          it 'returns created' do
-            post(:create, params:)
+          expect(response).to have_http_status(:created)
+        end
 
-            expect(response).to have_http_status(:created)
-          end
+        it 'creates a new expense record' do
+          expect { post :create, params: }.to change(Expense, :count)
 
-          it 'creates a new expense record' do
-            expect { post :create, params: }.to change(Expense, :count)
+          created_expense = Expense.last
+          expect(created_expense.title).to eq(title)
+          expect(created_expense.amount_in_cents).to eq(amount_in_cents)
+          expect(created_expense.date).to eq(date)
+        end
 
-            created_expense = Expense.last
-            expect(created_expense.title).to eq(title)
-            expect(created_expense.amount_in_cents).to eq(amount_in_cents)
-            expect(created_expense.date).to eq(date)
-          end
+        it 'returns the newly created expense' do
+          post(:create, params:)
 
-          it 'returns the newly created expense' do
-            post(:create, params:)
-
-            expect(response.body).to eq(Expense.last.to_json)
-          end
+          expect(response.body).to eq(Expense.last.to_json)
         end
       end
     end
@@ -127,100 +126,157 @@ RSpec.describe ExpensesController do
       end
     end
 
-    context 'when an invalid id param is passed' do
-      it 'returns not found' do
-        get :show, params: { id: 'invalid_id' }
+    context 'when id param is passed' do
+      context 'when id param is invalid' do
+        it 'returns not found' do
+          get :show, params: { id: 'invalid_id' }
 
-        expect(response).to have_http_status(:not_found)
+          expect(response).to have_http_status(:not_found)
+        end
       end
-    end
 
-    context 'when a valid id param is passed' do
-      it 'returns success' do
-        get :show, params: { id: expense.id }
+      context 'when id param is valid' do
+        it 'returns success' do
+          get :show, params: { id: expense.id }
 
-        expect(response).to have_http_status(:success)
+          expect(response).to have_http_status(:success)
+        end
+
+        it 'responds with correct expense' do
+          get :show, params: { id: expense.id }
+
+          expect(response.body).to eq(expense.to_json)
+        end
       end
     end
   end
 
   describe 'PATCH /expenses/:id' do
-    let(:title) { 'skincare' }
-    let(:amount_in_cents) { 10_000 }
-    let(:date) { Date.current }
-    let(:expense) { create(:expense, title:, amount_in_cents:, date:) }
+    before { @expense = create(:expense) }
 
     context 'when id param is missing' do
       it 'returns bad request' do
-        patch :update, params: { id: '' }
+        patch :update, params: { id: '', expense: @expense }
 
         expect(response).to have_http_status(:bad_request)
       end
     end
 
-    context 'when id param is valid' do
-      context 'when new title param is passed' do
-        let(:new_title) { 'New title' }
+    context 'when expense param is missing' do
+      let(:expense) { create(:expense) }
+      it 'returns the same expense with no updates' do
+        patch :update, params: { id: @expense.id }
 
-        it 'updates only the title' do
-          patch :update, params: { id: expense.id, expense: {title: new_title} }
-
-          updated_expense = Expense.find(expense.id)
-          expect(updated_expense.title).to eq(new_title)
-        end
-
-        # it 'returns success' do
-        #   patch :update, params: { id: expense.id,
-        #                            expense: { title: new_title, amount_in_cents: expense.amount_in_cents,
-        #                                       date: expense.date } }
-
-        #   expect(response).to have_http_status(:success)
-        # end
+        expect(response).to have_http_status(:bad_request)
       end
     end
 
-    # context 'when amount_in_cents param is passed' do
-    #   let(:new_amount_in_cents) { 11_500 }
+    context 'when id param is passed' do
+      context 'when id param is invalid' do
+        it 'returns not found' do
+          patch :update, params: { id: 'invalid_id', expense: @expense }
 
-    #   it 'updates only the amount_in_cents' do
-    #     patch :update, params: { id: expense.id,
-    #                              expense: { title: expense.title, amount_in_cents: new_amount_in_cents,
-    #                                         date: expense.date } }
+          expect(response).to have_http_status(:not_found)
+        end
+      end
 
-    #     updated_expense = Expense.find(expense.id)
-    #     expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
-    #   end
+      context 'when id param is valid' do
+        context 'when new title param is passed' do
+          let(:new_title) { 'New title' }
+          before do
+            patch :update,
+                  params: {
+                    id: @expense.id,
+                    expense: {
+                      title: new_title,
+                    },
+                  }
+          end
 
-    #   it 'returns success' do
-    #     patch :update, params: { id: expense.id,
-    #                              expense: { title: expense.title, amount_in_cents: new_amount_in_cents,
-    #                                         date: expense.date } }
+          it 'updates only the title' do
+            updated_expense = Expense.find(@expense.id)
+            expect(updated_expense.title).to eq(new_title)
+          end
 
-    #     expect(response).to have_http_status(:success)
-    #   end
-    # end
+          it 'returns success' do
+            expect(response).to have_http_status(:success)
+          end
 
-    # context 'when date param is passed' do
-    #   let(:new_date) { Date.new(2023, 3, 12) }
+          it 'returns updated expense' do
+            updated_expense = Expense.find(@expense.id)
+            expect(response.body) == (updated_expense.to_json)
+          end
+        end
+      end
 
-    #   it 'updates only the date' do
-    #     patch :update, params: { id: expense.id,
-    #                              expense: { title: expense.title, amount_in_cents: expense.amount_in_cents,
-    #                                         date: new_date } }
+      context 'when amount_in_cents param is passed' do
+        let(:new_amount_in_cents) { 11_500 }
 
-    #     updated_expense = Expense.find(expense.id)
-    #     expect(updated_expense.date).to eq(new_date)
-    #   end
+        it 'updates only the amount_in_cents' do
+          patch :update,
+                params: {
+                  id: expense.id,
+                  expense: {
+                    amount_in_cents: new_amount_in_cents,
+                  },
+                }
 
-    #   it 'returns success' do
-    #     patch :update, params: { id: expense.id,
-    #                              expense: { title: expense.title, amount_in_cents: expense.amount_in_cents,
-    #                                         date: new_date } }
+          updated_expense = Expense.find(expense.id)
+          expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
+        end
 
-    #     expect(response).to have_http_status(:success)
-    #   end
-    # end
+        it 'returns success' do
+          patch :update,
+                params: {
+                  id: expense.id,
+                  expense: {
+                    amount_in_cents: new_amount_in_cents,
+                  },
+                }
+
+          expect(response).to have_http_status(:success)
+        end
+
+        it 'returns updated expense' do
+          patch :update,
+                params: {
+                  id: expense.id,
+                  expense: {
+                    amount_in_cents: new_amount_in_cents,
+                  },
+                }
+
+          updated_expense = Expense.find(expense.id)
+          expect(response.body) == (updated_expense.to_json)
+        end
+      end
+
+      context 'when date param is passed' do
+        let(:new_date) { Date.new(2023, 3, 12) }
+
+        it 'updates only the date' do
+          patch :update, params: { id: expense.id, expense: { date: new_date } }
+
+          updated_expense = Expense.find(expense.id)
+          expect(updated_expense.date).to eq(new_date)
+        end
+
+        it 'returns success' do
+          patch :update, params: { id: expense.id, expense: { date: new_date } }
+
+          expect(response).to have_http_status(:success)
+        end
+
+        it 'returns updated expense' do
+          patch :update, params: { id: expense.id, expense: { date: new_date } }
+
+          updated_expense = Expense.find(expense.id)
+          expect(response.body) == (updated_expense.to_json)
+        end
+      end
+    end
   end
+
   # describe 'DELETE /expenses/:id' do
   #   let!(:expenses) { create_list(:expense, 10) }
   #   # let(:title) { 'holidays' }
