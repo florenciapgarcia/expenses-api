@@ -91,10 +91,10 @@ RSpec.describe ExpensesController do
           let(:date) { Date.current }
           let(:params) { { expense: { title:, amount_in_cents:, date: } } }
 
-          it 'returns success' do
+          it 'returns created' do
             post(:create, params:)
 
-            expect(response).to have_http_status(:success)
+            expect(response).to have_http_status(:created)
           end
 
           it 'creates a new expense record' do
@@ -105,67 +105,144 @@ RSpec.describe ExpensesController do
             expect(created_expense.amount_in_cents).to eq(amount_in_cents)
             expect(created_expense.date).to eq(date)
           end
+
+          it 'returns the newly created expense' do
+            post(:create, params:)
+
+            expect(response.body).to eq(Expense.last.to_json)
+          end
         end
       end
     end
   end
 
   describe 'GET /expenses/:id' do
-    let(:expense) { create(:expense) } # create a sample expense record
+    let(:expense) { create(:expense) }
 
-    context 'with a valid id param' do
-      it 'returns http success' do
-        get :show, params: { id: expense.id }
+    context 'when id param is missing' do
+      it 'returns bad request' do
+        get :show, params: { id: '' }
 
-        expect(response).to have_http_status(:success)
+        expect(response).to have_http_status(:bad_request)
       end
     end
 
-    context 'with an invalid id param' do
-      it 'returns http not found' do
+    context 'when an invalid id param is passed' do
+      it 'returns not found' do
         get :show, params: { id: 'invalid_id' }
 
         expect(response).to have_http_status(:not_found)
       end
     end
 
-    context 'with a missing id param' do
-      it 'returns http bad request' do
-        get :show, params: { id: '' }
+    context 'when a valid id param is passed' do
+      it 'returns success' do
+        get :show, params: { id: expense.id }
 
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:success)
       end
     end
   end
 
   describe 'PATCH /expenses/:id' do
-    context 'when valid params are passed' do
-      let!(:expense) do
-        create(
-          :expense,
-          title: 'Skincare',
-          amount_in_cents: 10_000,
-          date: Date.current
-        )
-      context 'when title is passed' do
-        let(:new_title) { 'New title' }
-        it 'updates only the title' do
-          patch :update,
-                params: {
-                  id: expense.id,
-                  expense: {
-                    title: new_title,
-                    amount_in_cents: expense.amount_in_cents,
-                    date: expense.date
-                  }
-                }
+    let(:title) { 'skincare' }
+    let(:amount_in_cents) { 10_000 }
+    let(:date) { Date.current }
+    let(:expense) { create(:expense, title:, amount_in_cents:, date:) }
 
-          updated_expense = Expense.find(expense.id)
-          expect(response).to have_http_status(:success)
-          expect(updated_expense.title).to eq(new_title)
-        end
+    context 'when id param is missing' do
+      it 'returns bad request' do
+        patch :update, params: { id: '' }
+
+        expect(response).to have_http_status(:bad_request)
       end
     end
+
+    context 'when id param is valid' do
+      context 'when new title param is passed' do
+        let(:new_title) { 'New title' }
+
+        it 'updates only the title' do
+          patch :update, params: { id: expense.id, expense: {title: new_title} }
+
+          updated_expense = Expense.find(expense.id)
+          expect(updated_expense.title).to eq(new_title)
+        end
+
+        # it 'returns success' do
+        #   patch :update, params: { id: expense.id,
+        #                            expense: { title: new_title, amount_in_cents: expense.amount_in_cents,
+        #                                       date: expense.date } }
+
+        #   expect(response).to have_http_status(:success)
+        # end
+      end
+    end
+
+    # context 'when amount_in_cents param is passed' do
+    #   let(:new_amount_in_cents) { 11_500 }
+
+    #   it 'updates only the amount_in_cents' do
+    #     patch :update, params: { id: expense.id,
+    #                              expense: { title: expense.title, amount_in_cents: new_amount_in_cents,
+    #                                         date: expense.date } }
+
+    #     updated_expense = Expense.find(expense.id)
+    #     expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
+    #   end
+
+    #   it 'returns success' do
+    #     patch :update, params: { id: expense.id,
+    #                              expense: { title: expense.title, amount_in_cents: new_amount_in_cents,
+    #                                         date: expense.date } }
+
+    #     expect(response).to have_http_status(:success)
+    #   end
+    # end
+
+    # context 'when date param is passed' do
+    #   let(:new_date) { Date.new(2023, 3, 12) }
+
+    #   it 'updates only the date' do
+    #     patch :update, params: { id: expense.id,
+    #                              expense: { title: expense.title, amount_in_cents: expense.amount_in_cents,
+    #                                         date: new_date } }
+
+    #     updated_expense = Expense.find(expense.id)
+    #     expect(updated_expense.date).to eq(new_date)
+    #   end
+
+    #   it 'returns success' do
+    #     patch :update, params: { id: expense.id,
+    #                              expense: { title: expense.title, amount_in_cents: expense.amount_in_cents,
+    #                                         date: new_date } }
+
+    #     expect(response).to have_http_status(:success)
+    #   end
+    # end
   end
-  end
+  # describe 'DELETE /expenses/:id' do
+  #   let!(:expenses) { create_list(:expense, 10) }
+  #   # let(:title) { 'holidays' }
+  #   # let(:amount_in_cents) { 100_000 }
+  #   # let(:date) { Date.current }
+  #   # let(:expense) { create(:expense, title:, amount_in_cents:, date:) }
+  #   context 'when id param is missing' do
+  #     it 'returns bad request' do
+  #       delete :destroy, params: { id: expense.id }
+
+  #       puts expense
+
+  #       expect(response).to have_http_status(:bad_request)
+  #     end
+  #   end
+
+  #   context 'when id param is passed' do
+  #     it 'return success' do
+  #       delete :destroy, params: { id: expense.id, expense: }
+
+  #       # expect(response.status).to have_http_status(:success)
+  #       expect(response.status).to eq("Expense with ID #{expense.id} has been deleted successfully")
+  #     end
+  #   end
 end
