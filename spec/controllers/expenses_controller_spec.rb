@@ -211,94 +211,87 @@ RSpec.describe ExpensesController do
 
       context 'when amount_in_cents param is passed' do
         let(:new_amount_in_cents) { 11_500 }
-
-        it 'updates only the amount_in_cents' do
+        before do
           patch :update,
                 params: {
-                  id: expense.id,
+                  id: @expense.id,
                   expense: {
                     amount_in_cents: new_amount_in_cents,
                   },
                 }
+        end
 
-          updated_expense = Expense.find(expense.id)
+        it 'updates only the amount_in_cents' do
+          updated_expense = Expense.find(@expense.id)
           expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
         end
 
         it 'returns success' do
-          patch :update,
-                params: {
-                  id: expense.id,
-                  expense: {
-                    amount_in_cents: new_amount_in_cents,
-                  },
-                }
-
           expect(response).to have_http_status(:success)
         end
 
         it 'returns updated expense' do
-          patch :update,
-                params: {
-                  id: expense.id,
-                  expense: {
-                    amount_in_cents: new_amount_in_cents,
-                  },
-                }
-
-          updated_expense = Expense.find(expense.id)
+          updated_expense = Expense.find(@expense.id)
           expect(response.body) == (updated_expense.to_json)
         end
       end
 
       context 'when date param is passed' do
         let(:new_date) { Date.new(2023, 3, 12) }
+        before do
+          patch :update,
+                params: {
+                  id: @expense.id,
+                  expense: {
+                    date: new_date,
+                  },
+                }
+        end
 
         it 'updates only the date' do
-          patch :update, params: { id: expense.id, expense: { date: new_date } }
-
-          updated_expense = Expense.find(expense.id)
+          updated_expense = Expense.find(@expense.id)
           expect(updated_expense.date).to eq(new_date)
         end
 
         it 'returns success' do
-          patch :update, params: { id: expense.id, expense: { date: new_date } }
-
           expect(response).to have_http_status(:success)
         end
 
         it 'returns updated expense' do
-          patch :update, params: { id: expense.id, expense: { date: new_date } }
-
-          updated_expense = Expense.find(expense.id)
+          updated_expense = Expense.find(@expense.id)
           expect(response.body) == (updated_expense.to_json)
         end
       end
     end
   end
 
-  # describe 'DELETE /expenses/:id' do
-  #   let!(:expenses) { create_list(:expense, 10) }
-  #   # let(:title) { 'holidays' }
-  #   # let(:amount_in_cents) { 100_000 }
-  #   # let(:date) { Date.current }
-  #   # let(:expense) { create(:expense, title:, amount_in_cents:, date:) }
-  #   context 'when id param is missing' do
-  #     it 'returns bad request' do
-  #       delete :destroy, params: { id: expense.id }
+  describe 'DELETE /expenses/:id' do
+    before { @expense = create(:expense) }
 
-  #       puts expense
+    context 'when id param is missing' do
+      it 'returns bad request' do
+        delete :destroy, params: { id: '' }
 
-  #       expect(response).to have_http_status(:bad_request)
-  #     end
-  #   end
+        expect(response).to have_http_status(:bad_request)
+      end
+    end
 
-  #   context 'when id param is passed' do
-  #     it 'return success' do
-  #       delete :destroy, params: { id: expense.id, expense: }
+    context 'when id param is passed' do
+      context 'when id is invalid' do
+        it 'returns not found' do
+          delete :destroy, params: { id: 'invalid_id' }
 
-  #       # expect(response.status).to have_http_status(:success)
-  #       expect(response.status).to eq("Expense with ID #{expense.id} has been deleted successfully")
-  #     end
-  #   end
+          expect(response).to have_http_status(:not_found)
+        end
+      end
+
+      context 'when id is valid' do
+        it 'returns success' do
+          delete :destroy, params: { id: @expense.id }
+
+          expect(response).to have_http_status(:no_content)
+        end
+      end
+    end
+  end
 end
