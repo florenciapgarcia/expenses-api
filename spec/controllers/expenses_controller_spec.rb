@@ -2,6 +2,8 @@ require 'rails_helper'
 
 RSpec.describe ExpensesController do
   describe 'GET /expenses' do
+    before { Expense.delete_all }
+
     context 'when no expenses exist' do
       it 'returns success' do
         get :index
