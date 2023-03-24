@@ -87,6 +87,7 @@ RSpec.describe ExpensesController do
           expect(response).to have_http_status(:bad_request)
         end
       end
+
       context 'when title, amount_in_cents, date params is passed' do
         let(:title) { 'vet shop' }
         let(:amount_in_cents) { 1000 }
