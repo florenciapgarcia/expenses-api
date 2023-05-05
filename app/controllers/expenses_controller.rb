@@ -1,5 +1,5 @@
 class ExpensesController < ApplicationController
-  before_action :set_expense, only: %i[show destroy]
+  before_action :set_expense, :set_user, only: %i[show destroy]
 
   def index
     expenses = Expense.all
