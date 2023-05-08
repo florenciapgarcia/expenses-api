@@ -2,7 +2,7 @@
 
 class ExpensesController < ApplicationController
   before_action :set_expense, only: %i[show destroy]
-  # before_action  :set_user, only: %i[create]
+  before_action :set_user, only: %i[create show destroy update]
 
   def index
     expenses = Expense.all
@@ -10,11 +10,12 @@ class ExpensesController < ApplicationController
   end
 
   def create
-    puts create_params
     expense = Expense.create(create_params)
-    puts @current_user
-
-    render json: expense, status: :created
+    if expense.save
+      render json: expense, status: :created
+    elsif @user.nil?
+      render json: { error: "You're not authorised to do this." }, status: :unauthorized
+    end
   end
 
   def show
@@ -29,6 +30,7 @@ class ExpensesController < ApplicationController
 
   def destroy
     @expense.destroy
+    render json: { message: 'The expense was deleted successfully.' }
   end
 
   private
@@ -45,15 +47,15 @@ class ExpensesController < ApplicationController
         expense_params.require(:title)
         expense_params.require(:amount_in_cents)
         expense_params.require(:date)
-        expense_params[:user_id] = @current_user
+        expense_params[:user_id] = @user
       end
   end
 
   def update_params
-    params.require(:expense).permit(:title, :amount_in_cents, :date)
+    params.require(:expense).permit(:title, :amount_in_cents, :date, :user_id)
   end
 
-  # def set_user
-  #   @user = current_user
-  # end
+  def set_user
+    @user = current_user.id
+  end
 end

@@ -37,6 +37,11 @@ RSpec.describe ExpensesController do
   end
 
   describe 'POST /expenses' do
+      let(:user) { create(:user) }
+       before do
+        session[:user_id] = user.id
+        end
+
     context 'when expense params are missing' do
       it 'returns bad request' do
         post :create, params: {}
@@ -95,9 +100,13 @@ RSpec.describe ExpensesController do
         let(:user) { create(:user) }
         let(:params) { { expense: { title:, amount_in_cents:, date:, user_id: user.id } } }
 
+        before do
+          session[:user_id] = user.id
+        end
+
         it 'returns created' do
           post(:create, params:)
-          puts user.attributes
+
           expect(response).to have_http_status(:created)
         end
 
@@ -105,7 +114,7 @@ RSpec.describe ExpensesController do
           expect { post :create, params: }.to change(Expense, :count)
 
           created_expense = Expense.last
-          puts created_expense
+
           expect(created_expense.title).to eq(title)
           expect(created_expense.amount_in_cents).to eq(amount_in_cents)
           expect(created_expense.date).to eq(date)
@@ -122,6 +131,10 @@ RSpec.describe ExpensesController do
 
   describe 'GET /expenses/:id' do
     let(:expense) { create(:expense) }
+    let(:user) { create(:user) }
+    before do
+          session[:user_id] = user.id
+    end
 
     context 'when id param is missing' do
       it 'returns bad request' do
@@ -157,11 +170,15 @@ RSpec.describe ExpensesController do
   end
 
   describe 'PATCH /expenses/:id' do
-    before { @expense = create(:expense) }
+    let(:user) { create(:user) }
+    let(:expense) { create(:expense) }
+    before do
+      session[:user_id] = user.id
+    end
 
     context 'when id param is missing' do
       it 'returns bad request' do
-        patch :update, params: { id: '', expense: @expense }
+        patch :update, params: { id: '', expense: }
 
         expect(response).to have_http_status(:bad_request)
       end
@@ -170,7 +187,7 @@ RSpec.describe ExpensesController do
     context 'when expense param is missing' do
       let(:expense) { create(:expense) }
       it 'returns the same expense with no updates' do
-        patch :update, params: { id: @expense.id }
+        patch :update, params: { id: expense.id }
 
         expect(response).to have_http_status(:bad_request)
       end
@@ -179,7 +196,7 @@ RSpec.describe ExpensesController do
     context 'when id param is passed' do
       context 'when id param is invalid' do
         it 'returns not found' do
-          patch :update, params: { id: 'invalid_id', expense: @expense }
+          patch :update, params: { id: 'invalid_id', expense: expense }
 
           expect(response).to have_http_status(:not_found)
         end
@@ -191,7 +208,7 @@ RSpec.describe ExpensesController do
           before do
             patch :update,
                   params: {
-                    id: @expense.id,
+                    id: expense.id,
                     expense: {
                       title: new_title,
                     },
@@ -199,7 +216,8 @@ RSpec.describe ExpensesController do
           end
 
           it 'updates only the title' do
-            updated_expense = Expense.find(@expense.id)
+            updated_expense = Expense.find(expense.id)
+
             expect(updated_expense.title).to eq(new_title)
           end
 
@@ -208,7 +226,8 @@ RSpec.describe ExpensesController do
           end
 
           it 'returns updated expense' do
-            updated_expense = Expense.find(@expense.id)
+            updated_expense = Expense.find(expense.id)
+
             expect(response.body) == (updated_expense.to_json)
           end
         end
@@ -219,7 +238,7 @@ RSpec.describe ExpensesController do
         before do
           patch :update,
                 params: {
-                  id: @expense.id,
+                  id: expense.id,
                   expense: {
                     amount_in_cents: new_amount_in_cents,
                   },
@@ -227,7 +246,8 @@ RSpec.describe ExpensesController do
         end
 
         it 'updates only the amount_in_cents' do
-          updated_expense = Expense.find(@expense.id)
+          updated_expense = Expense.find(expense.id)
+
           expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
         end
 
@@ -236,7 +256,8 @@ RSpec.describe ExpensesController do
         end
 
         it 'returns updated expense' do
-          updated_expense = Expense.find(@expense.id)
+          updated_expense = Expense.find(expense.id)
+
           expect(response.body) == (updated_expense.to_json)
         end
       end
@@ -246,7 +267,7 @@ RSpec.describe ExpensesController do
         before do
           patch :update,
                 params: {
-                  id: @expense.id,
+                  id: expense.id,
                   expense: {
                     date: new_date,
                   },
@@ -254,7 +275,8 @@ RSpec.describe ExpensesController do
         end
 
         it 'updates only the date' do
-          updated_expense = Expense.find(@expense.id)
+          updated_expense = Expense.find(expense.id)
+
           expect(updated_expense.date).to eq(new_date)
         end
 
@@ -263,7 +285,8 @@ RSpec.describe ExpensesController do
         end
 
         it 'returns updated expense' do
-          updated_expense = Expense.find(@expense.id)
+          updated_expense = Expense.find(expense.id)
+
           expect(response.body) == (updated_expense.to_json)
         end
       end
@@ -271,7 +294,12 @@ RSpec.describe ExpensesController do
   end
 
   describe 'DELETE /expenses/:id' do
-    before { @expense = create(:expense) }
+    let(:user) { create(:user) }
+    let(:expense) { create(:expense) }
+
+    before do
+      session[:user_id] = user.id
+    end
 
     context 'when id param is missing' do
       it 'returns bad request' do
@@ -292,9 +320,10 @@ RSpec.describe ExpensesController do
 
       context 'when id is valid' do
         it 'returns success' do
-          delete :destroy, params: { id: @expense.id }
+          delete :destroy, params: { id: expense.id }
 
-          expect(response).to have_http_status(:no_content)
+          expect(response).to have_http_status(:success)
+          expect(response.body).to eq({ message: 'The expense was deleted successfully.' }.to_json)
         end
       end
     end
