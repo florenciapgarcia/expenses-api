@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class ExpensesController < ApplicationController
   before_action :set_expense, only: %i[show destroy]
   # before_action  :set_user, only: %i[create]
@@ -37,12 +39,12 @@ class ExpensesController < ApplicationController
   def create_params
     params
       .require(:expense)
-      .permit(:title, :amount_in_cents, :date)
+      .permit(:title, :amount_in_cents, :date, :user_id)
       .tap do |expense_params|
         expense_params.require(:title)
         expense_params.require(:amount_in_cents)
         expense_params.require(:date)
-        expense_params[:user_id] = current_user.id
+        expense_params[:user_id] = @current_user
       end
   end
 
