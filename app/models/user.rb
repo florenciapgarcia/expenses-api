@@ -11,4 +11,14 @@ class User < ApplicationRecord
   # TODO: - add regex
   validates :email, presence: true
   validates :password, presence: true, length: { minimum: 6 }
+  before_save :capitalize_name
+
+  def full_name
+    [first_name, last_name].join(' ')
+  end
+
+  def capitalize_name
+    self.first_name = first_name.capitalize
+    self.last_name = last_name.capitalize if last_name.present?
+  end
 end

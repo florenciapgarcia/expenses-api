@@ -10,7 +10,11 @@ class UsersController < ApplicationController
   def create
     user = User.create(create_params)
     puts user.inspect
-    render json: { message: 'The user was created successfully.' }, status: :created
+    if user.save
+      render json: { message: 'The user was created successfully.' }, status: :created
+    else
+      render json: { error: user.errors.full_messages.join(', ') }, status: :bad_request
+    end
   end
 
   private
