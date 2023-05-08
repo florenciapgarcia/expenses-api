@@ -92,16 +92,16 @@ RSpec.describe ExpensesController do
         let(:title) { 'vet shop' }
         let(:amount_in_cents) { 1000 }
         let(:date) { Date.current }
-        let(:params) { { expense: { title:, amount_in_cents:, date: } } }
+        let(:user) { create(:user) }
+        let(:params) { { expense: { title:, amount_in_cents:, date:, user_id: user.id } } }
 
         it 'returns created' do
           post(:create, params:)
-          puts user_id
-          puts 'RESPONSE', response.body
+          puts user.attributes
           expect(response).to have_http_status(:created)
         end
 
-        it 'creates a new expense record' do
+      it 'creates a new expense record' do
           expect { post :create, params: }.to change(Expense, :count)
 
           created_expense = Expense.last

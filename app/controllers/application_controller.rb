@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 class ApplicationController < ActionController::Base
+  include SessionsHelper
+
   rescue_from ActionController::ParameterMissing,
               with: :rescue_from_parameter_missing
 
