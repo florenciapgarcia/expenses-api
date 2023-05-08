@@ -2,20 +2,17 @@
 
 class SessionsController < ApplicationController
   def create
-    @user = User.find_by(email: params[:session][:email])
-    # puts 'authenticate:', @user.authenticate(params[:session][:password])
-    puts @user
-    #  puts @user.attributes
-
-    render json: { message: 'Sign in with your credentials.' }, status: :unauthorized if params.nil?
-
-    puts 'user var', params
-    if @user.authenticate(params[:session][:password])
-      reset_session
-      log_in @user
-      render json: { message: "Welcome, #{@user.first_name}" }
+    if params[:session].blank?
+      render json: { message: 'Sign in with your credentials.' }, status: :unauthorized
     else
-      render json: { message: 'Your password is invalid. Please retry.' }, status: :unprocessable_entity
+      user = User.find_by(email: params[:session][:email])
+      if user && user.authenticate(params[:session][:password])
+        reset_session
+        log_in user
+        render json: { message: "Welcome, #{user.full_name}" }
+      else
+        render json: { message: 'Your password is invalid. Please retry.' }, status: :unprocessable_entity
+      end
     end
   end
 

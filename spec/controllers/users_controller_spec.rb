@@ -139,7 +139,7 @@ RSpec.describe UsersController do
       end
 
 
-      context 'when first_name, last_name, email, password, password_confirmation params are passed' do
+      context 'when valid params are passed' do
         it 'returns created' do
           post(:create, params:)
 
@@ -151,8 +151,8 @@ RSpec.describe UsersController do
 
         created_user = User.last
 
-        expect(created_user.first_name).to eq(first_name)
-        expect(created_user.last_name).to eq(last_name)
+        expect(created_user.first_name).to eq(first_name.capitalize)
+        expect(created_user.last_name).to eq(last_name.capitalize)
         expect(created_user.email).to eq(email)
         expect(BCrypt::Password.new(created_user.password_digest)).to eq(password)
       end
