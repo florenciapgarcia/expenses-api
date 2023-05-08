@@ -9,6 +9,8 @@ class ExpensesController < ApplicationController
 
   def create
     expense = Expense.create(create_params)
+    puts current_user
+
     render json: expense, status: :created
   end
 

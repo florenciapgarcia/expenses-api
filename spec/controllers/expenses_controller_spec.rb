@@ -88,7 +88,7 @@ RSpec.describe ExpensesController do
         end
       end
 
-      context 'when title, amount_in_cents, date params is passed' do
+      context 'when title, amount_in_cents, date params are passed' do
         let(:title) { 'vet shop' }
         let(:amount_in_cents) { 1000 }
         let(:date) { Date.current }
@@ -96,7 +96,8 @@ RSpec.describe ExpensesController do
 
         it 'returns created' do
           post(:create, params:)
-
+          puts user_id
+          puts 'RESPONSE', response.body
           expect(response).to have_http_status(:created)
         end
 
@@ -104,6 +105,7 @@ RSpec.describe ExpensesController do
           expect { post :create, params: }.to change(Expense, :count)
 
           created_expense = Expense.last
+          puts created_expense
           expect(created_expense.title).to eq(title)
           expect(created_expense.amount_in_cents).to eq(amount_in_cents)
           expect(created_expense.date).to eq(date)
