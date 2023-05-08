@@ -37,7 +37,7 @@ RSpec.describe ExpensesController do
   end
 
   describe 'POST /expenses' do
-    context 'when expense param is missing' do
+    context 'when expense params are missing' do
       it 'returns bad request' do
         post :create, params: {}
 
@@ -45,7 +45,7 @@ RSpec.describe ExpensesController do
       end
     end
 
-    context 'when expense param is passed' do
+    context 'when expense params are passed' do
       context 'when title param is missing' do
         it 'returns bad request' do
           post :create,

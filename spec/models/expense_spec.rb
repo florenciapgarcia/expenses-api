@@ -27,7 +27,6 @@ RSpec.describe Expense do
 				expect(expense).not_to be_valid
 			end
 		end
-	end
 
 	context 'when amount_in_cents is not empty' do
 		context 'when amount_in_cents is not an integer' do
@@ -54,4 +53,7 @@ RSpec.describe Expense do
 			expect(expense).to be_valid
 		end
 	end
+end
+
+# TODO - test association
 end
