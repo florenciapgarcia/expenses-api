@@ -3,6 +3,7 @@ FactoryBot.define do
     first_name { "Pebbles" }
     last_name { "Pezcara" }
     email { "pebbs_pezcara@test.com" }
-    password_digest { BCrypt::Password.create('password') }
+    password { "password" }
+    password_confirmation { "password" }
   end
 end

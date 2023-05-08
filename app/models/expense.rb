@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 class Expense < ApplicationRecord
   belongs_to :user
 
@@ -5,8 +7,9 @@ class Expense < ApplicationRecord
   validates :amount_in_cents,
             numericality: {
               only_integer: true,
-              greater_than: 0,
+              greater_than: 0
             },
             presence: true
   validates :date, presence: true
+  validates :user_id, presence: true
 end
