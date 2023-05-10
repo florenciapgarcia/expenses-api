@@ -165,42 +165,45 @@ RSpec.describe UsersController do
         end
 end
 end
-  # describe 'GET /expenses/:id' do
-  #   let(:expense) { create(:expense) }
 
-  #   context 'when id param is missing' do
-  #     it 'returns bad request' do
-  #       get :show, params: { id: '' }
+  describe 'GET /users/:id' do
+    let(:user) { create(:user) }
 
-  #       expect(response).to have_http_status(:bad_request)
-  #     end
-  #   end
+    context 'when user is not logged in' do
+      it 'returns unauthorized' do
+        get :show, params: { id: ''}
 
-  #   context 'when id param is passed' do
-  #     context 'when id param is invalid' do
-  #       it 'returns not found' do
-  #         get :show, params: { id: 'invalid_id' }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
-  #         expect(response).to have_http_status(:not_found)
-  #       end
-  #     end
+    context 'when user is logged in' do
+      before do
+          session[:user_id] = user.id
+          get :show, params: { id: 1 }
+      end
 
-  #     context 'when id param is valid' do
-  #       it 'returns success' do
-  #         get :show, params: { id: expense.id }
+      context 'when id param doesn\'t match logged in user_id' do
+        it 'returns unauthorized' do
+          get :show, params: { id: ''}
 
-  #         expect(response).to have_http_status(:success)
-  #       end
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
 
-  #       it 'responds with correct expense' do
-  #         get :show, params: { id: expense.id }
+      context 'when id param matches logged in user_id'
+      it 'returns success' do
+        puts response.body
+        expect(response).to have_http_status(:success)
+      end
 
-  #         expect(response.body).to eq(expense.to_json)
-  #       end
-  #     end
-  #   end
-  # end
-
+      it 'returns the correct user' do
+        expect(response.body).to include(user.full_name)
+        expect(response.body).to include(user.email)
+        expect(response.body).to include(user.created_at.strftime('%Y-%m-%dT%H:%M:%S.%L').to_s)
+      end
+    end
+  end
   # describe 'PATCH /expenses/:id' do
   #   before { @expense = create(:expense) }
 
@@ -219,7 +222,7 @@ end
 
   #       expect(response).to have_http_status(:bad_request)
   #     end
-  #   end
+  # end
 
   #   context 'when id param is passed' do
   #     context 'when id param is invalid' do

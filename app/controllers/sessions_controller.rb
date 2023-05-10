@@ -6,7 +6,7 @@ class SessionsController < ApplicationController
       render json: { message: 'Sign in with your credentials.' }, status: :unauthorized
     else
       user = User.find_by(email: params[:session][:email])
-      if user && user.authenticate(params[:session][:password])
+      if user&.authenticate(params[:session][:password])
         reset_session
         log_in user
         render json: { message: "Welcome, #{user.full_name}" }

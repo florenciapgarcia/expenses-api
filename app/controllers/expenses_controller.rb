@@ -14,7 +14,7 @@ class ExpensesController < ApplicationController
     if expense.save
       render json: expense, status: :created
     elsif @user.nil?
-      render json: { error: "You're not authorised to do this." }, status: :unauthorized
+      head :unauthorized
     end
   end
 

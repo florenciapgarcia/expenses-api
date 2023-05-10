@@ -21,4 +21,8 @@ class User < ApplicationRecord
     self.first_name = first_name.capitalize
     self.last_name = last_name.capitalize if last_name.present?
   end
+
+  def show_user
+    { name: full_name, email:, date_joined: created_at }
+  end
 end
