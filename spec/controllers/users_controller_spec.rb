@@ -42,7 +42,6 @@ RSpec.describe UsersController do
     let(:email) {'test@test.com'}
     let(:password) {'password'}
     let(:password_confirmation) {'password'}
-    let(:params) {{user: {first_name:, last_name:, email:, password:, password_confirmation:}}}
     context 'when user params are missing' do
       it 'returns bad request' do
         post :create, params: {}
@@ -140,12 +139,13 @@ RSpec.describe UsersController do
 
 
       context 'when valid params are passed' do
+        let(:params) {{user: {first_name:, last_name:, email:, password:, password_confirmation:}}}
         it 'returns created' do
+
           post(:create, params:)
 
           expect(response).to have_http_status(:created)
         end
-      end
       it 'creates a new user record' do
         expect { post :create, params: }.to change(User, :count)
 
@@ -163,7 +163,9 @@ RSpec.describe UsersController do
 
           expect(response.body).to eq({ message: 'The user was created successfully.' }.to_json)
         end
-end
+      end
+
+  end
 end
 
   describe 'GET /users/:id' do
@@ -193,7 +195,7 @@ end
 
       context 'when id param matches logged in user_id'
       it 'returns success' do
-        puts response.body
+        # puts response.body
         expect(response).to have_http_status(:success)
       end
 
