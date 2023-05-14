@@ -301,34 +301,42 @@ end
   end
 end
 
-    
-  # describe 'DELETE /expenses/:id' do
-  #   before { @expense = create(:expense) }
 
-  #   context 'when id param is missing' do
-  #     it 'returns bad request' do
-  #       delete :destroy, params: { id: '' }
+  describe 'DELETE /users/:id' do
+    before do
+      @user = create(:user)
+      session[:user_id] = @user.id
+    end
 
-  #       expect(response).to have_http_status(:bad_request)
-  #     end
-  #   end
+    context 'when user is not logged in' do
+      it 'returns bad request' do
+        session[:user_id] = nil
 
-  #   context 'when id param is passed' do
-  #     context 'when id is invalid' do
-  #       it 'returns not found' do
-  #         delete :destroy, params: { id: 'invalid_id' }
+        delete :destroy, params: { id: '' }
 
-  #         expect(response).to have_http_status(:not_found)
-  #       end
-  #     end
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
-  #     context 'when id is valid' do
-  #       it 'returns success' do
-  #         delete :destroy, params: { id: @expense.id }
+    context 'when user is logged in' do
+      context 'when id is invalid' do
+        it 'returns unauthorized' do
+          delete :destroy, params: { id: 'invalid_id' }
 
-  #         expect(response).to have_http_status(:no_content)
-  #       end
-  #     end
-  #   end
-  # end
+          expect(response).to have_http_status(:unauthorized)
+        end
+      end
+
+      context 'when id is valid' do
+        before { delete :destroy, params: { id: @user.id } }
+        it 'returns success' do
+          expect(response).to have_http_status(:success)
+        end
+
+        it 'returns message of successfully deleted user' do
+          expect(response.body).to include('The user was deleted successfully.')
+        end
+      end
+    end
+  end
 end

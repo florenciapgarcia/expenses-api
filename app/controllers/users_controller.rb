@@ -36,9 +36,9 @@ class UsersController < ApplicationController
 
     user = User.update!(@user.id, update_params)
 
-    return unless user.save
-
-    render json: user.show_user
+    if user.save
+      render json: user.show_user
+    end
   end
 
   def destroy
