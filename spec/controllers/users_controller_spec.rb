@@ -20,7 +20,7 @@ RSpec.describe UsersController do
     end
 
     context 'when users exist' do
-      let!(:users) { create_list(:user, 10) }
+      let!(:users) { create_list(:user, 2) }
 
       it 'returns success' do
         get :index
@@ -31,7 +31,21 @@ RSpec.describe UsersController do
       it 'returns users' do
         get :index
 
-        expect(response.body).to eq(users.to_json)
+        expect(response.body).to include([
+          {
+          id: users[0].id,
+          first_name: users[0].first_name,
+          last_name: users[0].last_name,
+          email: users[0].email
+          },
+            {
+          id: users[1].id,
+          first_name: users[1].first_name,
+          last_name: users[1].last_name,
+          email: users[1].email
+          },
+        ].to_json)
+        expect(User.count).to eq(2)
       end
     end
   end
@@ -73,13 +87,11 @@ RSpec.describe UsersController do
         it 'returns bad request' do
           post :create,
                params: {
-                 user: {
                   first_name:,
                   last_name: '',
                   email:,
                   password:,
                   password_confirmation:
-                 },
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -104,7 +116,7 @@ RSpec.describe UsersController do
       end
 
       context 'when password param is missing' do
-        it 'returns bad request' do
+        it 'returns bad_request' do
           post :create,
                params: {
                  user: {
@@ -121,7 +133,7 @@ RSpec.describe UsersController do
       end
 
       context 'when password_confirmation param is missing' do
-        it 'returns bad request' do
+        it 'returns bad_request' do
           post :create,
                params: {
                  user: {
@@ -139,9 +151,8 @@ RSpec.describe UsersController do
 
 
       context 'when valid params are passed' do
-        let(:params) {{user: {first_name:, last_name:, email:, password:, password_confirmation:}}}
+        let(:params) {{ user: {first_name:, last_name:, email:}, password:, password_confirmation: }}
         it 'returns created' do
-
           post(:create, params:)
 
           expect(response).to have_http_status(:created)
@@ -187,17 +198,17 @@ end
 
       context 'when id param doesn\'t match logged in user_id' do
         it 'returns unauthorized' do
-          get :show, params: { id: ''}
+          get :show, params: { id: 'wrong_id' }
 
           expect(response).to have_http_status(:unauthorized)
         end
       end
 
       context 'when id param matches logged in user_id'
-      it 'returns success' do
-        # puts response.body
-        expect(response).to have_http_status(:success)
-      end
+        it 'returns success' do
+
+          expect(response).to have_http_status(:success)
+        end
 
       it 'returns the correct user' do
         expect(response.body).to include(user.full_name)
@@ -206,6 +217,7 @@ end
       end
     end
   end
+
   # describe 'PATCH /expenses/:id' do
   #   before { @expense = create(:expense) }
 

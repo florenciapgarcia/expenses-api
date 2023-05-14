@@ -5,7 +5,6 @@ class UsersController < ApplicationController
 
   before_action :logged_in?, only: %i[show destroy]
   before_action :set_user, only: %i[show destroy]
-  before_action :passwords_match?, only: %i[create]
 
   def index
     users = User.user_data.map do |user|
@@ -16,12 +15,11 @@ class UsersController < ApplicationController
 
   def create
     user = User.new(create_params)
-    user.password = BCrypt::Password.create(params[:password])
 
     if user.save
       render json: { message: 'The user was created successfully.' }, status: :created
     else
-      render json: { error: user.errors.full_messages.join(', ') }, status: :bad_request
+      render json: { error: user.errors.full_messages }, status: :bad_request
     end
   end
 
@@ -47,26 +45,17 @@ class UsersController < ApplicationController
   private
 
   def create_params
-    puts passwords_match?
-    params
-      .require(:user)
-      .permit(
-        :first_name,
-        :last_name,
-        :email
-      )
-      .tap do |user_params|
-      user_params.require(:first_name)
-      user_params.require(:last_name)
-      user_params.require(:email)
-    end
+    params.require(:user).permit(:first_name, :last_name, :email)
+          .tap do |user_params|
+            user_params.require(:first_name)
+            user_params.require(:last_name)
+            user_params.require(:email)
+            user_params[:password] = params[:password]
+            user_params[:password_confirmation] = params[:password_confirmation]
+          end
   end
 
   def set_user
     @user = User.find(params[:id]) if params[:id].to_i == @current_user&.id
-  end
-
-  def passwords_match?
-    params[:password] == params[:password_confirmation]
   end
 end
