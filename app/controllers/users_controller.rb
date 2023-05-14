@@ -3,8 +3,8 @@
 class UsersController < ApplicationController
   # skip_before_action :verify_authenticity_token
 
-  before_action :logged_in?, only: %i[show destroy]
-  before_action :set_user, only: %i[show destroy]
+  before_action :logged_in?, only: %i[show destroy update]
+  before_action :set_user, only: %i[show destroy update]
 
   def index
     users = User.user_data.map do |user|
@@ -31,7 +31,15 @@ class UsersController < ApplicationController
     end
   end
 
-  def update; end
+  def update
+    return head :unauthorized unless set_user
+
+    user = User.update!(@user.id, update_params)
+
+    return unless user.save
+
+    render json: user.show_user
+  end
 
   def destroy
     if set_user
@@ -53,6 +61,10 @@ class UsersController < ApplicationController
             user_params[:password] = params[:password]
             user_params[:password_confirmation] = params[:password_confirmation]
           end
+  end
+
+  def update_params
+    params.require(:user).permit(:first_name, :last_name, :email, :password, :password_confirmation)
   end
 
   def set_user

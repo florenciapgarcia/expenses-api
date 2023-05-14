@@ -218,120 +218,90 @@ end
     end
   end
 
-  # describe 'PATCH /expenses/:id' do
-  #   before { @expense = create(:expense) }
+  describe 'PATCH /users/:id' do
+    let(:new_first_name) { 'Test' }
+    let(:new_last_name) { 'Tester' }
+    let(:new_email) { 'test@test.com' }
+    let(:new_password) { 'password' }
+    let(:new_password_confirmation) { 'password' }
+    let(:new_params) { {id: @user.id, user: { first_name: new_first_name, last_name: new_last_name, email: new_email, password: new_password, password_confirmation: new_password_confirmation} }}
+    let(:another_user) { create(:user) }
+    before do
+      @user = create(:user)
+      session[:user_id] = @user.id
+    end
 
-  #   context 'when id param is missing' do
-  #     it 'returns bad request' do
-  #       patch :update, params: { id: '', expense: @expense }
+    context 'when user is not logged in' do
+      it 'returns unauthorized' do
+        session[:user_id] = nil
 
-  #       expect(response).to have_http_status(:bad_request)
-  #     end
-  #   end
+        patch :update, params: { id: @user.id, user: new_params }
 
-  #   context 'when expense param is missing' do
-  #     let(:expense) { create(:expense) }
-  #     it 'returns the same expense with no updates' do
-  #       patch :update, params: { id: @expense.id }
+        expect(response).to have_http_status(:unauthorized)
+      end
+    end
 
-  #       expect(response).to have_http_status(:bad_request)
-  #     end
-  # end
+    context 'when user is logged in' do
+       context 'when no user params to update are passed' do
+          it 'returns bad request' do
+            patch :update, params: { id: @user.id, user: {}}
 
-  #   context 'when id param is passed' do
-  #     context 'when id param is invalid' do
-  #       it 'returns not found' do
-  #         patch :update, params: { id: 'invalid_id', expense: @expense }
+            expect(response).to have_http_status(:bad_request)
+          end
+        end
+      context 'when invalid user params to update are passed' do
+        context 'when invalid user_id is passed' do
+          it 'returns bad_request' do
+            patch :update, params: { id: 'wrong_id', user: new_params}
 
-  #         expect(response).to have_http_status(:not_found)
-  #       end
-  #     end
+            expect(response).to have_http_status(:unauthorized)
+          end
+        end
 
-  #     context 'when id param is valid' do
-  #       context 'when new title param is passed' do
-  #         let(:new_title) { 'New title' }
-  #         before do
-  #           patch :update,
-  #                 params: {
-  #                   id: @expense.id,
-  #                   expense: {
-  #                     title: new_title,
-  #                   },
-  #                 }
-  #         end
+        context 'when password doesn\'t match password_confirmation' do
+          before do
+            patch :update, params: { id:@user.id, user: { password: 'password', password_confirmation: 'pazzword' } }
+          end
+          it 'returns bad request' do
+            expect(response).to have_http_status(:bad_request)
+          end
 
-  #         it 'updates only the title' do
-  #           updated_expense = Expense.find(@expense.id)
-  #           expect(updated_expense.title).to eq(new_title)
-  #         end
+          it 'returns message passwords don\t match' do
+            expect(response.body).to include('Password confirmation doesn\'t match Password')
+          end
+        end
+      end
 
-  #         it 'returns success' do
-  #           expect(response).to have_http_status(:success)
-  #         end
+    context 'when user params to be updated are passed' do
+      before do
+        patch :update, params: new_params
+      end
 
-  #         it 'returns updated expense' do
-  #           updated_expense = Expense.find(@expense.id)
-  #           expect(response.body) == (updated_expense.to_json)
-  #         end
-  #       end
-  #     end
+      it 'returns success' do
+        expect(response).to have_http_status(:success)
+      end
 
-  #     context 'when amount_in_cents param is passed' do
-  #       let(:new_amount_in_cents) { 11_500 }
-  #       before do
-  #         patch :update,
-  #               params: {
-  #                 id: @expense.id,
-  #                 expense: {
-  #                   amount_in_cents: new_amount_in_cents,
-  #                 },
-  #               }
-  #       end
+      it 'updates the user' do
+        updated_user = User.find(@user.id)
 
-  #       it 'updates only the amount_in_cents' do
-  #         updated_expense = Expense.find(@expense.id)
-  #         expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
-  #       end
+        expect(updated_user.first_name).to eq(new_first_name)
+      end
 
-  #       it 'returns success' do
-  #         expect(response).to have_http_status(:success)
-  #       end
+      it 'returns the updated user' do
+        updated_user = User.find(@user.id)
 
-  #       it 'returns updated expense' do
-  #         updated_expense = Expense.find(@expense.id)
-  #         expect(response.body) == (updated_expense.to_json)
-  #       end
-  #     end
+        expect(response.body)  ==  (updated_user.to_json)
+      end
 
-  #     context 'when date param is passed' do
-  #       let(:new_date) { Date.new(2023, 3, 12) }
-  #       before do
-  #         patch :update,
-  #               params: {
-  #                 id: @expense.id,
-  #                 expense: {
-  #                   date: new_date,
-  #                 },
-  #               }
-  #       end
+      it 'updates only the specified user' do
+        expect(@user.reload.first_name).to eq(new_first_name)
+        expect(another_user.reload.first_name).to_not eq(new_first_name)
+      end
+    end
+  end
+end
 
-  #       it 'updates only the date' do
-  #         updated_expense = Expense.find(@expense.id)
-  #         expect(updated_expense.date).to eq(new_date)
-  #       end
-
-  #       it 'returns success' do
-  #         expect(response).to have_http_status(:success)
-  #       end
-
-  #       it 'returns updated expense' do
-  #         updated_expense = Expense.find(@expense.id)
-  #         expect(response.body) == (updated_expense.to_json)
-  #       end
-  #     end
-  #   end
-  # end
-
+    
   # describe 'DELETE /expenses/:id' do
   #   before { @expense = create(:expense) }
 
