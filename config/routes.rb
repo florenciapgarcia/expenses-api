@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   resources :users
 
+  # TODO - make expenses live inside users!
   #  resources :users do
   #   resources :expenses
   # end
