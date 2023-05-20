@@ -19,4 +19,8 @@ module SessionsHelper
     reset_session
     @current_user = nil
   end
+
+  def missing_params?(params)
+    params.nil?
+  end
 end

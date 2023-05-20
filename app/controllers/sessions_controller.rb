@@ -1,23 +1,29 @@
 # frozen_string_literal: true
 
 class SessionsController < ApplicationController
+  # skip_before_action :verify_authenticity_token
+  before_action :logged_in?, only: %i[destroy]
+
   def create
-    if params[:session].blank?
-      render json: { message: 'Sign in with your credentials.' }, status: :unauthorized
+    user = User.find_by(email: create_params[:email])
+    if missing_params?(create_params)
+      head :bad_request
+    elsif user && user&.authenticate(create_params[:password])
+      reset_session
+      log_in user
+      head :ok
     else
-      user = User.find_by(email: params[:session][:email])
-      if user&.authenticate(params[:session][:password])
-        reset_session
-        log_in user
-        render json: { message: "Welcome, #{user.full_name}" }
-      else
-        render json: { message: 'Your password is invalid. Please retry.' }, status: :unprocessable_entity
-      end
+      render json: { message: 'Your password is invalid. Please retry.' }, status: :unauthorized
     end
   end
 
   def destroy
+    if logged_in?
     log_out
+    render json: {message: 'You have logged out successfully.'}
+    else
+      head :bad_request
+    end
   end
 
   private

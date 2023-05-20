@@ -12,6 +12,7 @@ class UsersController < ApplicationController
     end
     render json: users
   end
+  # TODO: - add that when user is created, a new session starts with session[:user_id] - add it to tests
 
   def create
     user = User.new(create_params)
@@ -36,9 +37,9 @@ class UsersController < ApplicationController
 
     user = User.update!(@user.id, update_params)
 
-    if user.save
-      render json: user.show_user
-    end
+    return unless user.save
+
+    render json: user.show_user
   end
 
   def destroy
