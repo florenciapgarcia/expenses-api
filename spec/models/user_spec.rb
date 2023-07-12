@@ -65,8 +65,7 @@ RSpec.describe User do
 end
 
 
-	# context 'associations' do
-	# 	it { should have_many(:expenses) }
-
-  # end
+	context 'associations' do
+		it { should respond_to(:expenses) }
+  end
 end
