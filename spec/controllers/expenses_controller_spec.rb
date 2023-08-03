@@ -1,18 +1,18 @@
 require 'rails_helper'
 
 RSpec.describe ExpensesController do
-  describe 'GET /expenses' do
+  describe 'GET users/:user_id/expenses' do
     before { Expense.delete_all }
 
     context 'when no expenses exist' do
       it 'returns success' do
-        get :index
+        get :index, params: { user_id: '' }
 
         expect(response).to have_http_status(:success)
       end
 
       it 'returns no expenses' do
-        get :index
+        get :index, params: { user_id: '' }
 
         response_body = JSON.parse(response.body)
         expect(response_body).to eq([])
@@ -20,31 +20,32 @@ RSpec.describe ExpensesController do
     end
 
     context 'when expenses exist' do
-      let!(:expenses) { create_list(:expense, 10) }
+      let(:user) { create(:user) }
+      let!(:expenses) { create_list(:expense, 10, user: user) }
 
       it 'returns success' do
-        get :index
+        get :index, params: { user_id: user.id }
 
         expect(response).to have_http_status(:success)
       end
 
       it 'returns expenses' do
-        get :index
+        get :index, params: { user_id: user.id }
 
         expect(response.body).to eq(expenses.to_json)
       end
     end
   end
 
-  describe 'POST /expenses' do
-      let(:user) { create(:user) }
-       before do
-        session[:user_id] = user.id
-        end
+  describe 'POST /users/:user_id/expenses' do
+    let(:user) { create(:user) }
+    before do
+      session[:user_id] = user.id
+    end
 
     context 'when expense params are missing' do
       it 'returns bad request' do
-        post :create, params: {}
+        post :create, params: {user_id: 1}
 
         expect(response).to have_http_status(:bad_request)
       end
@@ -59,6 +60,7 @@ RSpec.describe ExpensesController do
                    amount_in_cents: 100,
                    date: Date.current,
                  },
+                 user_id: user.id
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -73,6 +75,7 @@ RSpec.describe ExpensesController do
                    title: 'vet shop',
                    date: Date.current,
                  },
+                 user_id: user.id
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -87,6 +90,7 @@ RSpec.describe ExpensesController do
                    title: 'vet shop',
                    amount_in_cents: 1000,
                  },
+                 user_id: user.id
                }
 
           expect(response).to have_http_status(:bad_request)
@@ -97,8 +101,8 @@ RSpec.describe ExpensesController do
         let(:title) { 'vet shop' }
         let(:amount_in_cents) { 1000 }
         let(:date) { Date.current }
-        let(:user) { create(:user) }
-        let(:params) { { expense: { title:, amount_in_cents:, date:, user_id: user.id } } }
+        let!(:user) { create(:user) }
+        let!(:params) { { expense: { title:, amount_in_cents:, date:}, user_id: user.id } }
 
         before do
           session[:user_id] = user.id
@@ -106,11 +110,11 @@ RSpec.describe ExpensesController do
 
         it 'returns created' do
           post(:create, params:)
-
+          puts Expense.all
           expect(response).to have_http_status(:created)
         end
 
-      it 'creates a new expense record' do
+        it 'creates a new expense record' do
           expect { post :create, params: }.to change(Expense, :count)
 
           created_expense = Expense.last
@@ -129,16 +133,17 @@ RSpec.describe ExpensesController do
     end
   end
 
-  describe 'GET /expenses/:id' do
+  describe 'GET users/:user_id/expenses/:id' do
     let(:expense) { create(:expense) }
     let(:user) { create(:user) }
+
     before do
-          session[:user_id] = user.id
+      session[:user_id] = user.id
     end
 
     context 'when id param is missing' do
       it 'returns bad request' do
-        get :show, params: { id: '' }
+        get :show, params: { id: expense.id}
 
         expect(response).to have_http_status(:bad_request)
       end
@@ -297,33 +302,47 @@ RSpec.describe ExpensesController do
     let(:user) { create(:user) }
     let(:expense) { create(:expense) }
 
-    before do
-      session[:user_id] = user.id
-    end
+    context 'when user is logged out' do
+      it 'returns unauthorised' do
+        delete :destroy, params: { id: 2 }
 
-    context 'when id param is missing' do
-      it 'returns bad request' do
-        delete :destroy, params: { id: '' }
-
-        expect(response).to have_http_status(:bad_request)
+        expect(response).to have_http_status(:not_found)
       end
     end
 
-    context 'when id param is passed' do
-      context 'when id is invalid' do
-        it 'returns not found' do
-          delete :destroy, params: { id: 'invalid_id' }
+    context 'when user is logged in' do
+      before do
+        session[:user_id] = user.id
+      end
 
-          expect(response).to have_http_status(:not_found)
+      after do
+        session[:user_id] = nil
+      end
+
+      context 'when id param is missing' do
+        it 'returns bad request' do
+          delete :destroy, params: { id: '' }
+
+          expect(response).to have_http_status(:bad_request)
         end
       end
 
-      context 'when id is valid' do
-        it 'returns success' do
-          delete :destroy, params: { id: expense.id }
+      context 'when id param is passed' do
+        context 'when id is invalid' do
+          it 'returns not found' do
+            delete :destroy, params: { id: 'invalid_id' }
 
-          expect(response).to have_http_status(:success)
-          expect(response.body).to eq({ message: 'The expense was deleted successfully.' }.to_json)
+            expect(response).to have_http_status(:not_found)
+          end
+        end
+
+        context 'when id is valid' do
+          it 'returns success' do
+            delete :destroy, params: { id: expense.id }
+
+            expect(response).to have_http_status(:success)
+            expect(response.body).to eq({ message: 'The expense was deleted successfully.' }.to_json)
+          end
         end
       end
     end

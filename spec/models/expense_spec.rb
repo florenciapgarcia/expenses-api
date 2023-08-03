@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Expense do
   context 'validations' do
-    context 'when title attribute is empty' do
+    context 'when title attribute is missing' do
       it 'is not valid' do
         expense = build(:expense, title: nil)
 
@@ -12,7 +12,7 @@ RSpec.describe Expense do
       end
     end
 
-    context 'when amount_in_cents attribute is empty' do
+    context 'when amount_in_cents attribute is missing' do
       it 'is not valid' do
         expense = build(:expense, amount_in_cents: nil)
 
@@ -20,7 +20,7 @@ RSpec.describe Expense do
       end
     end
 
-    context 'when date attribute is empty' do
+    context 'when date attribute is missing' do
       it 'is not valid' do
         expense = build(:expense, date: nil)
 
@@ -28,7 +28,15 @@ RSpec.describe Expense do
       end
     end
 
-    context 'when amount_in_cents is not empty' do
+    context 'when user_id is missing' do
+      it 'is not valid' do
+        expense = build(:expense, user_id: nil)
+
+        expect(expense).not_to be_valid
+      end
+    end
+
+    context 'when amount_in_cents is present' do
       context 'when amount_in_cents is not an integer' do
         it 'is not valid' do
           expense = build(:expense, :invalid_amount)
@@ -46,7 +54,7 @@ RSpec.describe Expense do
       end
     end
 
-    context 'when valid attributes passed' do
+    context 'when valid attributes are passed' do
       it 'is valid' do
         expense = create(:expense)
 
