@@ -1,3 +1,11 @@
+GIT
+  remote: https://github.com/faker-ruby/faker.git
+  revision: 4bee42acd22d8f5561d1993f36859c768677948b
+  branch: main
+  specs:
+    faker (3.2.0)
+      i18n (>= 1.8.11, < 2)
+
 GEM
   remote: https://rubygems.org/
   specs:
@@ -264,6 +272,7 @@ DEPENDENCIES
   capybara
   debug
   factory_bot_rails
+  faker!
   importmap-rails
   jbuilder
   pry

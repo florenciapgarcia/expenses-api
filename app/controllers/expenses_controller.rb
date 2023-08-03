@@ -25,7 +25,7 @@ class ExpensesController < ApplicationController
       render json: expense, status: :created
       puts 'EXPENSE: ', expense
     elsif @user.nil?
-      render json: { error: "You're not authorised to do this." }, status: :unauthorized
+      head :unauthorized
     end
   end
 

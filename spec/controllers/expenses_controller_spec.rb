@@ -252,7 +252,7 @@ RSpec.describe ExpensesController do
 
         it 'updates only the amount_in_cents' do
           updated_expense = Expense.find(expense.id)
-
+          
           expect(updated_expense.amount_in_cents).to eq(new_amount_in_cents)
         end
 
