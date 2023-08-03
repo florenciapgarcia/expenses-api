@@ -8,11 +8,6 @@ Rails.application.routes.draw do
     resources :expenses
   end
 
-  # TODO - make expenses live inside users!
-  #  resources :users do
-  #   resources :expenses
-  # end
-
   post '/login', to: 'sessions#create'
   delete '/logout', to: 'sessions#destroy'
 end
