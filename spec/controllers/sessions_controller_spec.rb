@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'rails_helper'
+
 RSpec.describe SessionsController do
   let(:user) { create(:user) }
   before { session[:user_id] = user.id }
 
   describe 'POST /login' do
-
     context 'when params are missing' do
       let(:email) { 'test@test.com' }
       let(:password) { 'password' }
@@ -18,7 +20,7 @@ RSpec.describe SessionsController do
       end
 
       context 'when email param is missing' do
-        before { post :create, params:{ session: { password: }} }
+        before { post :create, params: { session: { password: } } }
 
         it 'returns bad_request' do
           expect(response).to have_http_status(:bad_request)
@@ -27,7 +29,7 @@ RSpec.describe SessionsController do
       end
 
       context 'when password param is missing' do
-        before { post :create, params:{ session: { email: }} }
+        before { post :create, params: { session: { email: } } }
 
         it 'returns bad_request' do
           expect(response).to have_http_status(:bad_request)
@@ -37,7 +39,7 @@ RSpec.describe SessionsController do
     end
 
     context 'when invalid params are passed' do
-      let(:params) { { session: { email: user.email, password: 'wrong_password'} } }
+      let(:params) { { session: { email: user.email, password: 'wrong_password' } } }
       before { post(:create, params:) }
 
       it 'returns anauthorized' do
@@ -47,7 +49,7 @@ RSpec.describe SessionsController do
     end
 
     context 'when valid params are passed' do
-      let(:params) { {session: { email: user.email, password: user.password} }}
+      let(:params) { { session: { email: user.email, password: user.password } } }
 
       before { post(:create, params:) }
       it 'returns success' do
@@ -82,7 +84,7 @@ RSpec.describe SessionsController do
       end
 
       it 'returns sucess message' do
-        expect(response.body).to eq( {message: 'You have logged out successfully.' }.to_json)
+        expect(response.body).to eq({ message: 'You have logged out successfully.' }.to_json)
       end
 
       it 'removes user_id from the session' do
@@ -90,4 +92,4 @@ RSpec.describe SessionsController do
       end
     end
   end
-  end
+end

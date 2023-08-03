@@ -4,15 +4,15 @@ class ExpensesController < ApplicationController
   before_action :set_expense, only: %i[show destroy]
   before_action :set_user, only: %i[index create show destroy update]
   before_action :require_login, only: %i[index create show destroy update]
-  skip_before_action :verify_authenticity_token, only: [:destroy, :create, :update]
+  skip_before_action :verify_authenticity_token, only: %i[destroy create update]
 
   include SessionsHelper
 
   def index
-    if @user.id == params[:user_id].to_i
-      expenses = Expense.where(user_id: @user.id)
-      render json: expenses
-    end
+    return unless @user.id == params[:user_id].to_i
+
+    expenses = Expense.where(user_id: @user.id)
+    render json: expenses
   end
 
   def create
@@ -35,8 +35,8 @@ class ExpensesController < ApplicationController
   end
 
   def destroy
-      @expense.destroy
-      render json: { message: 'The expense was deleted successfully.' }
+    @expense.destroy
+    render json: { message: 'The expense was deleted successfully.' }
   end
 
   private
