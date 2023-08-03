@@ -100,9 +100,9 @@ RSpec.describe User do
 
   context '.full_name' do
     it 'returns first_name and last_name joined' do
-      user = create(:user)
+      user = build(:user, { first_name: 'florencia', last_name: 'test' })
 
-      expect(user.full_name).to eq('Pebbles Pezcara')
+      expect(user.full_name).to eq('florencia test')
     end
   end
 end
