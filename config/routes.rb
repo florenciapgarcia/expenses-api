@@ -3,9 +3,10 @@ Rails.application.routes.draw do
 
   # Defines the root path route ("/")
   # root "articles#index"
-  resources :expenses
 
-  resources :users
+  resources :users do
+    resources :expenses
+  end
 
   post '/login', to: 'sessions#create'
   delete '/logout', to: 'sessions#destroy'

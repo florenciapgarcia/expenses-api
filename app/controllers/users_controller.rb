@@ -2,6 +2,8 @@
 
 class UsersController < ApplicationController
   # TODO: - the below should probably not be a public endpoint
+  skip_before_action :verify_authenticity_token, only: [:destroy, :create]
+
   def index
     users = User.all
     render json: users

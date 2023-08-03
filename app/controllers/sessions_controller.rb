@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 class SessionsController < ApplicationController
+  include SessionsHelper
+  skip_before_action :verify_authenticity_token, only: [:destroy, :create]
+
   def create
     if params[:session].blank?
       render json: { message: 'Sign in with your credentials.' }, status: :unauthorized
