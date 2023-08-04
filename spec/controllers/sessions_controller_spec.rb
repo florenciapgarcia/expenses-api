@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'rails_helper'
+
 RSpec.describe SessionsController do
   let(:user) { create(:user) }
   before { session[:user_id] = user.id }
