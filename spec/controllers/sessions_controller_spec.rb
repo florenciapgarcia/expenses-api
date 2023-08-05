@@ -12,26 +12,26 @@ RSpec.describe SessionsController do
       let(:password) { 'password' }
 
       context 'when no params are passed' do
-        before { post :create, params: {} }
-
         it 'returns bad_request' do
+          post :create, params: {}
+
           expect(response).to have_http_status(:bad_request)
         end
       end
 
       context 'when email param is missing' do
-        before { post :create, params: { session: { password: } } }
-
         it 'returns bad_request' do
+          post :create, params: { session: { password: } }
+
           expect(response).to have_http_status(:bad_request)
           expect(response.body).to include('email')
         end
       end
 
       context 'when password param is missing' do
-        before { post :create, params: { session: { email: } } }
-
         it 'returns bad_request' do
+          post :create, params: { session: { email: } }
+
           expect(response).to have_http_status(:bad_request)
           expect(response.body).to include('password')
         end
@@ -40,9 +40,9 @@ RSpec.describe SessionsController do
 
     context 'when invalid params are passed' do
       let(:params) { { session: { email: user.email, password: 'wrong_password' } } }
-      before { post(:create, params:) }
-
       it 'returns anauthorized' do
+        post(:create, params:)
+
         expect(response).to have_http_status(:unauthorized)
         expect(response.body).to eq({ message: 'Your password is invalid. Please retry.' }.to_json)
       end

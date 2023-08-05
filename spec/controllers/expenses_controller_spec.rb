@@ -38,99 +38,110 @@ RSpec.describe ExpensesController do
 
   describe 'POST /users/:user_id/expenses' do
     let(:user) { create(:user) }
-    before do
-      session[:user_id] = user.id
+
+    context 'when user is not logged in' do
+      let(:params) {create(:expense)}
+      it 'returns unauthorised' do
+        session[:user_id] = nil
+        post(:create, params: {expense: {title: params.title, amount_in_cents: params.amount_in_cents, date: params.date}, user_id: user.id})
+
+        expect(response).to have_http_status(:unauthorized)
     end
-
-    context 'when expense params are missing' do
-      it 'returns bad request' do
-        post :create, params: { user_id: 1 }
-
-        expect(response).to have_http_status(:bad_request)
+    context 'when user is logged in' do
+      before do
+        session[:user_id] = user.id
       end
-    end
-
-    context 'when expense params are passed' do
-      context 'when title param is missing' do
+      context 'when expense params are missing' do
         it 'returns bad request' do
-          post :create,
-               params: {
-                 expense: {
-                   amount_in_cents: 100,
-                   date: Date.current,
-                 },
-                 user_id: user.id
-               }
+          post :create, params: { user_id: user.id }
 
           expect(response).to have_http_status(:bad_request)
         end
       end
 
-      context 'when amount_in_cents param is missing' do
-        it 'returns bad request' do
-          post :create,
-               params: {
-                 expense: {
-                   title: 'vet shop',
-                   date: Date.current,
-                 },
-                 user_id: user.id
-               }
+      context 'when expense params are passed' do
+        context 'when title param is missing' do
+          it 'returns bad request' do
+            post :create,
+                 params: {
+                   expense: {
+                     amount_in_cents: 100,
+                     date: Date.current,
+                   },
+                   user_id: user.id
+                 }
 
-          expect(response).to have_http_status(:bad_request)
-        end
-      end
-
-      context 'when date param is missing' do
-        it 'returns bad request' do
-          post :create,
-               params: {
-                 expense: {
-                   title: 'vet shop',
-                   amount_in_cents: 1000,
-                 },
-                 user_id: user.id
-               }
-
-          expect(response).to have_http_status(:bad_request)
-        end
-      end
-
-      context 'when title, amount_in_cents, date params are passed' do
-        let(:title) { 'vet shop' }
-        let(:amount_in_cents) { 1000 }
-        let(:date) { Date.current }
-        let!(:user) { create(:user) }
-        let!(:params) { { expense: { title:, amount_in_cents:, date: }, user_id: user.id } }
-
-        before do
-          session[:user_id] = user.id
+            expect(response).to have_http_status(:bad_request)
+          end
         end
 
-        it 'returns created' do
-          post(:create, params:)
+        context 'when amount_in_cents param is missing' do
+          it 'returns bad request' do
+            post :create,
+                 params: {
+                   expense: {
+                     title: 'vet shop',
+                     date: Date.current,
+                   },
+                   user_id: user.id
+                 }
 
-          expect(response).to have_http_status(:created)
+            expect(response).to have_http_status(:bad_request)
+          end
         end
 
-        it 'creates a new expense record' do
-          expect { post :create, params: }.to change(Expense, :count)
+        context 'when date param is missing' do
+          it 'returns bad request' do
+            post :create,
+                 params: {
+                   expense: {
+                     title: 'vet shop',
+                     amount_in_cents: 1000,
+                   },
+                   user_id: user.id
+                 }
 
-          created_expense = Expense.last
-
-          expect(created_expense.title).to eq(title)
-          expect(created_expense.amount_in_cents).to eq(amount_in_cents)
-          expect(created_expense.date).to eq(date)
+            expect(response).to have_http_status(:bad_request)
+          end
         end
 
-        it 'returns the newly created expense' do
-          post(:create, params:)
+        context 'when title, amount_in_cents, date params are passed' do
+          let(:title) { 'vet shop' }
+          let(:amount_in_cents) { 1000 }
+          let(:date) { Date.current }
+          let!(:user) { create(:user) }
+          let!(:params) { { expense: { title:, amount_in_cents:, date: }, user_id: user.id } }
 
-          expect(response.body).to eq(Expense.last.to_json)
+          before do
+            session[:user_id] = user.id
+          end
+
+          it 'returns created' do
+            post(:create, params:)
+
+            expect(response).to have_http_status(:created)
+          end
+
+          it 'creates a new expense record' do
+            expect { post :create, params: }.to change(Expense, :count)
+
+            created_expense = Expense.last
+
+            expect(created_expense.title).to eq(title)
+            expect(created_expense.amount_in_cents).to eq(amount_in_cents)
+            expect(created_expense.date).to eq(date)
+          end
+
+          it 'returns the newly created expense' do
+            post(:create, params:)
+
+            expect(response.body).to eq(Expense.last.to_json)
+          end
         end
       end
     end
   end
+ end
 
   describe 'GET users/:user_id/expenses/:id' do
     let(:expense) { create(:expense) }

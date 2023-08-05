@@ -16,11 +16,9 @@ module SessionsHelper
   end
 
   def log_out
-    reset_session
-    @current_user = nil
-  end
+    return if session[:user_id].nil?
 
-  def missing_params?(params)
-    params.nil?
+    session[:user_id] = nil
+    @current_user = nil
   end
 end
