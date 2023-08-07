@@ -7,9 +7,7 @@ class SessionsController < ApplicationController
 
   def create
     user = User.find_by(email: create_params[:email])
-    if missing_params?(create_params)
-      head :bad_request
-    elsif user&.authenticate(create_params[:password])
+    if user&.authenticate(create_params[:password])
       reset_session
       log_in user
       head :ok

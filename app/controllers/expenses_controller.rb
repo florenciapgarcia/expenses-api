@@ -19,8 +19,6 @@ class ExpensesController < ApplicationController
     expense = Expense.create(create_params)
     if expense.save
       render json: expense, status: :created
-    elsif @user.nil?
-      head :unauthorized
     end
   end
 
@@ -53,7 +51,7 @@ class ExpensesController < ApplicationController
       expense_params.require(:title)
       expense_params.require(:amount_in_cents)
       expense_params.require(:date)
-      expense_params[:user_id] = current_user.id
+      expense_params[:user_id] = @user.id
     end
   end
 
@@ -66,8 +64,8 @@ class ExpensesController < ApplicationController
   end
 
   def require_login
-    unless logged_in? && @user.id == params[:user_id].to_i
-      head :unauthorized
-    end
+    return if logged_in? && @user.id == params[:user_id].to_i
+
+    head :unauthorized
   end
 end

@@ -4,7 +4,7 @@ class UsersController < ApplicationController
   before_action :logged_in?, only: %i[show destroy update]
   before_action :set_user, only: %i[show destroy update]
   # TODO: - the below should probably not be a public endpoint
-  skip_before_action :verify_authenticity_token, only: [:destroy, :create]
+  skip_before_action :verify_authenticity_token, only: %i[destroy create]
 
   def index
     users = User.user_data.map do |user|

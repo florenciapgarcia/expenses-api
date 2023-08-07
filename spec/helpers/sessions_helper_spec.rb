@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# spec/helpers/sessions_helper_spec.rb
-
 require 'rails_helper'
 
 RSpec.describe SessionsHelper, type: :helper do
@@ -16,33 +14,58 @@ RSpec.describe SessionsHelper, type: :helper do
   end
 
   describe '#current_user' do
-    context 'when the user does not exist' do
+    context 'when the user is not logged in' do
       it 'doesn\'t do anything' do
         expect(current_user).to eq(nil)
       end
     end
 
-    context 'when the user exists' do
-      before { log_in(user) }
-      context 'when @current_user is already set' do
-        before { assign(:current_user, user) }
-
-        it 'does not modify @current_user' do
-          puts user.first_name
-          log_in(create(:user))
+    context 'when the user is logged in' do
+      it 'sets @current_user value' do
+          log_in(user)
 
           expect(current_user).to eq(user)
-        end
       end
+    end
+    end
 
-      context 'when @current_user is not nil' do
-        it 'returns the @current_user' do
-          expect(current_user).to eq(user)
-        end
+  describe '#logged_in?' do
+    context 'when user is logged out' do
+      it 'returns false' do
+        expect(logged_in?).to eq(false)
+      end
+    end
+
+    context 'when user is logged in' do
+      it 'returns true' do
+        log_in(user)
+
+        expect(logged_in?).to eq(true)
       end
     end
   end
 
   describe '#log_out' do
+    context 'when no user is logged in' do
+      it 'does not do anything' do
+        log_out
+
+        expect(current_user).to eq(nil)
+        expect(session[:user_id]).to eq(nil)
+      end
+    end
+
+    context 'when user is logged in' do
+      it 'logs user out' do
+      log_in(user)
+
+      expect(current_user).to eq(user)
+
+      log_out
+
+      expect(current_user).to eq(nil)
+      expect(session[:user_id]).to eq(nil)
+      end
+    end
   end
 end
