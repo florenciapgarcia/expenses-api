@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe UsersController do
   describe 'GET /users' do
-    before { User.delete_all }
+    # before { User.delete_all }
 
     context 'when no users exist' do
       it 'returns success' do
@@ -33,31 +33,20 @@ RSpec.describe UsersController do
       it 'returns users' do
         get :index
 
-        expect(response.body).to include([
-          {
-            id: users[0].id,
-            first_name: users[0].first_name,
-            last_name: users[0].last_name,
-            email: users[0].email
-          },
-          {
-            id: users[1].id,
-            first_name: users[1].first_name,
-            last_name: users[1].last_name,
-            email: users[1].email
-          }
-        ].to_json)
-        expect(User.count).to eq(2)
+        expect(response.body).to include(users.to_json)
+        expect(JSON.parse(response.body).length).to eq(2)
       end
     end
   end
 
   describe 'POST /users' do
+    # TODO: - replace with Faker
     let(:first_name) { 'test' }
     let(:last_name) { 'tester' }
     let(:email) { 'test@test.com' }
     let(:password) { 'password' }
     let(:password_confirmation) { 'password' }
+
     context 'when user params are missing' do
       it 'returns bad request' do
         post :create, params: {}
@@ -65,7 +54,7 @@ RSpec.describe UsersController do
         expect(response).to have_http_status(:bad_request)
       end
     end
-
+    # TODO: - loop (params.keys - remove from params hash as we're looping)
     context 'when user params are passed' do
       context 'when first_name param is missing' do
         it 'returns bad request' do
@@ -151,12 +140,14 @@ RSpec.describe UsersController do
       end
 
       context 'when valid params are passed' do
-        let(:params) { { user: { first_name:, last_name:, email: }, password:, password_confirmation: } }
+        let(:params) { { user: { first_name:, last_name:, email:, password:, password_confirmation: } } }
+
         it 'returns created' do
           post(:create, params:)
 
           expect(response).to have_http_status(:created)
         end
+
         it 'creates a new user record' do
           expect { post :create, params: }.to change(User, :count)
 
@@ -191,7 +182,6 @@ RSpec.describe UsersController do
     context 'when user is logged in' do
       before do
         session[:user_id] = user.id
-        get :show, params: { id: 1 }
       end
 
       context 'when id param doesn\'t match logged in user_id' do
@@ -202,60 +192,67 @@ RSpec.describe UsersController do
         end
       end
 
-      context 'when id param matches logged in user_id'
-      it 'returns success' do
-        expect(response).to have_http_status(:success)
-      end
+      context 'when id param matches logged in user_id' do
+        before do
+          get :show, params: { id: 1 }
+        end
 
-      it 'returns the correct user' do
-        expect(response.body).to include(user.full_name)
-        expect(response.body).to include(user.email)
-        expect(response.body).to include(user.created_at.strftime('%Y-%m-%dT%H:%M:%S.%L').to_s)
+        it 'returns success' do
+          expect(response).to have_http_status(:success)
+        end
+
+        it 'returns the correct user' do
+          expect(response.body).to include(user.to_json)
+        end
       end
     end
   end
 
   describe 'PATCH /users/:id' do
+    # TODO: - use Faker
     let(:new_first_name) { 'Test' }
     let(:new_last_name) { 'Tester' }
     let(:new_email) { 'test@test.com' }
     let(:new_password) { 'password' }
     let(:new_password_confirmation) { 'password' }
     let(:new_params) do
-      { id: @user.id,
+      { id: user.id,
         user: { first_name: new_first_name, last_name: new_last_name, email: new_email, password: new_password,
                 password_confirmation: new_password_confirmation } }
     end
+    let(:user) { create(:user) }
     let(:another_user) { create(:user) }
-    before do
-      @user = create(:user)
-      session[:user_id] = @user.id
-    end
 
     context 'when user is not logged in' do
       it 'returns unauthorized' do
-        session[:user_id] = nil
-
-        patch :update, params: { id: @user.id, user: new_params }
+        patch :update, params: { id: user.id, user: another_user }
 
         expect(response).to have_http_status(:unauthorized)
       end
     end
 
     context 'when user is logged in' do
+      # TODO: - add a before each and include session[:user_id] = @user.id here isntead
+      before do
+        # TODO: - refactor using let block
+        session[:user_id] = user.id
+      end
+
       context 'when no user params to update are passed' do
         it 'returns bad request' do
-          patch :update, params: { id: @user.id, user: {} }
+          patch :update, params: { id: user.id, user: {} }
 
           expect(response).to have_http_status(:bad_request)
         end
       end
+
       context 'when invalid user params to update are passed' do
+        # TODO: - should return not_found (for every user_id that doesn't match the logged in user's id)
         context 'when invalid user_id is passed' do
           it 'returns bad_request' do
             patch :update, params: { id: 'wrong_id', user: new_params }
 
-            expect(response).to have_http_status(:unauthorized)
+            expect(response).to have_http_status(:bad_request)
           end
         end
 
@@ -283,15 +280,11 @@ RSpec.describe UsersController do
         end
 
         it 'updates the user' do
-          updated_user = User.find(@user.id)
-
-          expect(updated_user.first_name).to eq(new_first_name)
+          expect(@user.reload.first_name).to eq(new_first_name)
         end
 
         it 'returns the updated user' do
-          updated_user = User.find(@user.id)
-
-          expect(response.body) == (updated_user.to_json)
+          expect(response.body) == (@user.reload.to_json)
         end
 
         it 'updates only the specified user' do
@@ -303,13 +296,15 @@ RSpec.describe UsersController do
   end
 
   describe 'DELETE /users/:id' do
+    # TODO: - move to individual contexts
     before do
       @user = create(:user)
       session[:user_id] = @user.id
     end
 
     context 'when user is not logged in' do
-      it 'returns bad request' do
+      it 'returns unauthorized' do
+        # remove below
         session[:user_id] = nil
 
         delete :destroy, params: { id: '' }
@@ -323,12 +318,14 @@ RSpec.describe UsersController do
         it 'returns unauthorized' do
           delete :destroy, params: { id: 'invalid_id' }
 
+          # TODO: - should return 404
           expect(response).to have_http_status(:unauthorized)
         end
       end
 
       context 'when id is valid' do
         before { delete :destroy, params: { id: @user.id } }
+
         it 'returns success' do
           expect(response).to have_http_status(:success)
         end

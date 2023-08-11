@@ -19,10 +19,6 @@ class User < ApplicationRecord
     [first_name, last_name].join(' ')
   end
 
-  def show_user
-    { name: full_name, email:, date_joined: created_at }
-  end
-
   private
 
   def capitalize_name

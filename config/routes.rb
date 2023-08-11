@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   # Defines the root path route ("/")
   # root "articles#index"
 
+  # TODO: - be specific about routes (narrow them down - only implemented ones)
   resources :users do
     resources :expenses
   end
